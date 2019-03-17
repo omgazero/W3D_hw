@@ -8,6 +8,37 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Snowstorm/20131208/snowstorm-min.js" type="text/javascript"></script>
   <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+</head>
+<body>
+  <!--
+  <button type="button" onclick="toggleAll()">電源開關</button>
+  -->
+  <audio id="soundtrack" loop >
+    <source src="../media/BGM/Arus_Theme.mp3" type='audio/mp3'>
+  </audio>
+
+  <div class="onoffswitch">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
+    <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+  </div>
+
+  <section >
+    <div class="tree one" ></div>
+    <div class="tree two" ></div>
+    <div class="tree three" ></div>
+    <div class="wood"></div>
+    <div class="tree_shadow"></div>
+
+    <div class="bulb bulb-1"></div>
+    <div class="bulb bulb-2"></div>
+    <div class="bulb bulb-3"></div>
+    <div class="bulb bulb-4"></div>
+  </section>
+
   <script language="javascript">
 
     function Lamp(bulbClass){
@@ -60,12 +91,16 @@
               b2.turnOn();
               b3.turnOn();
               b4.turnOn();
+              if(sound != undefined)
+                  sound.play();
             }
             else{
               b1.turnOff();
               b2.turnOff();
               b3.turnOff();
               b4.turnOff();
+              if(sound != undefined)
+                  sound.pause()
             }
        });
      });
@@ -95,33 +130,12 @@
     b4 = new Lamp('bulb-4');
     setInterval ( function(){b4.toggleBlink();}, dutyCycle4 );
 
-
+    var sound = document.getElementById("soundtrack");
+    console.log(sound);
+    if(sound != undefined){
+      sound.volume = 0.2;
+    }
   </script>
-</head>
-<body>
-  <!--
-  <button type="button" onclick="toggleAll()">電源開關</button>
-  -->
-  <div class="onoffswitch">
-    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
-    <label class="onoffswitch-label" for="myonoffswitch">
-        <span class="onoffswitch-inner"></span>
-        <span class="onoffswitch-switch"></span>
-    </label>
-  </div>
-
-  <section >
-    <div class="tree one" ></div>
-    <div class="tree two" ></div>
-    <div class="tree three" ></div>
-    <div class="wood"></div>
-
-    <div class="bulb bulb-1"></div>
-    <div class="bulb bulb-2"></div>
-    <div class="bulb bulb-3"></div>
-    <div class="bulb bulb-4"></div>
-  </section>
-
 
 </body>
 </html>
