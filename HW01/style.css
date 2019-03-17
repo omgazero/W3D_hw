@@ -1,0 +1,134 @@
+body:before {
+	content:"";
+	position:fixed;
+	left:0;
+	top:0;
+	right:0;
+	bottom:0;
+	z-index:-1;
+	background: linear-gradient(#b9f1f7,#b6edce) ;
+}
+section{
+  position: absolute;
+  margin: 0 auto;
+  padding: 0;
+  left: 30%;
+  top: 20%;
+}
+/*  聖誕樹*/
+.tree.one{
+  margin: 0 auto;
+  width: 0;
+  height: 0;
+  position: relative;
+  border-left: 60px solid transparent;
+	border-right: 60px solid transparent;
+	border-bottom: 120px solid #499F68;
+  left: 30px;
+}
+.tree.two{
+  margin: 0 auto;
+  width: 0;
+  height: 0;
+  position: relative;
+  border-left: 80px solid transparent;
+	border-right: 80px solid transparent;
+	border-bottom: 140px solid #499F68;
+  left: 30px;
+  top: -50px;
+}
+.tree.three{
+  margin: 0 auto;
+  width: 0;
+  height: 0;
+  position: relative;
+  border-left: 100px solid transparent;
+	border-right: 100px solid transparent;
+	border-bottom: 160px solid #499F68;
+  left: 30px;
+  top: -100px;
+}
+.wood{
+  position: relative;
+  background: #84714F;
+  width: 30px;
+  height: 50px;
+  border: 0px solid;
+  left: 110px;
+  top: -100px;
+  z-index: -1;
+}
+/*  燈泡*/
+.bulb{
+  margin: 0 auto;
+  width: 1.6em;
+  height: 1.6em;
+  display: block;
+  position: relative;
+  border-radius: 50%;
+  background: gray;
+  box-shadow: 0px 0px .3em rgba(255,255,255,.8);
+}
+.bulb-1{
+  top:-200px;
+  left: 70px;
+}
+.bulb-2{
+  top:-260px;
+  left: 10px;
+}
+.bulb-3{
+  top:-450px;
+  left: 20px;
+}
+.bulb-4{
+  top:-380px;
+  left: 40px;
+
+}
+/* 開關*/
+.onoffswitch {
+    position: relative; width: 90px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "ON";
+    padding-left: 10px;
+    background-color: #FA0D3C; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "OFF";
+    padding-right: 10px;
+    background-color: #CCCCCC; color: #333333;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 39px; margin: -4.5px;
+    background: #000000;
+    position: absolute; top: 0; bottom: 0;
+    right: 56px;
+    border: 2px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px;
+}
