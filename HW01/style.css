@@ -6,16 +6,55 @@ body:before {
 	right:0;
 	bottom:0;
 	z-index:-1;
-	background: linear-gradient(#b9f1f7,#b6edce) ;
+	background: linear-gradient(#051e47,#e3ebf9) ;
 }
 section{
   position: absolute;
   margin: 0 auto;
   padding: 0;
   left: 30%;
-  top: 20%;
+  top: 25%;
 }
 /*  聖誕樹*/
+.star {
+  margin: 20px 0;
+  position: absolute;
+  display: block;
+  width: 0px;
+  height: 0px;
+  border-right: 50px solid transparent;
+  border-bottom: 35px solid yellow;
+  border-left: 50px solid transparent;
+  transform: rotate(35deg);
+	top: -55px;
+	left: 83px;
+}
+.star:before {
+  border-bottom: 40px solid yellow;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  position: absolute;
+  height: 0;
+  width: 0;
+  top: -25px;
+  left: -35px;
+  /*display: block;*/
+  content: '';
+  transform: rotate(-35deg);
+}
+.star:after {
+  position: absolute;
+/*  display: block;*/
+  top: 3px;
+  left: -55px;
+  width: 0px;
+  height: 0px;
+  border-right: 50px solid transparent;
+  border-bottom: 35px solid yellow;
+  border-left: 50px solid transparent;
+  transform: rotate(-70deg);
+  content: '';
+}
 .tree.one{
   margin: 0 auto;
   width: 0;

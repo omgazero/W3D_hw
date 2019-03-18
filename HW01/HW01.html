@@ -27,6 +27,7 @@
   </div>
 
   <section >
+    <div class="star"></div>
     <div class="tree one" ></div>
     <div class="tree two" ></div>
     <div class="tree three" ></div>
@@ -38,9 +39,11 @@
     <div class="bulb bulb-3"></div>
     <div class="bulb bulb-4"></div>
   </section>
-
+  <img id="nero" src="tenor-2.gif" width="150" height="150" border="0" style="position:absolute;top:55%;left:20%;">
+  <img id="saber" src="santa-2.gif" width="150" height="150" border="0" style="position:absolute;top:55%;left:50%;">
   <script language="javascript">
 
+    snowStorm.flakesMaxActive = 80;
     function Lamp(bulbClass){
       var name = '.' + bulbClass;
       var bulbStatus = false;
@@ -87,12 +90,15 @@
      $(document).ready(function(){
        $("#myonoffswitch").on('click', function(){
             if ($("#myonoffswitch").is(':checked')) {
+
               b1.turnOn();
               b2.turnOn();
               b3.turnOn();
               b4.turnOn();
               if(sound != undefined)
                   sound.play();
+              nero.src = "tenor.gif";
+              saber.src = "santa.gif";
             }
             else{
               b1.turnOff();
@@ -101,7 +107,10 @@
               b4.turnOff();
               if(sound != undefined)
                   sound.pause()
+              nero.src = "tenor-2.gif";
+              saber.src = "santa-2.gif";
             }
+
        });
      });
     /*
@@ -130,8 +139,10 @@
     b4 = new Lamp('bulb-4');
     setInterval ( function(){b4.toggleBlink();}, dutyCycle4 );
 
+    var nero = document.getElementById("nero");
+    var saber = document.getElementById("saber");
     var sound = document.getElementById("soundtrack");
-    console.log(sound);
+
     if(sound != undefined){
       sound.volume = 0.2;
     }
