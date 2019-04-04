@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Hw02</title>
+  <style>
+  #info {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #ff0000;
+  }
+
+  body {
+    overflow: hidden;
+  }
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/95/three.min.js"></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <div id="info">Hw2
+  <br>
+  <button id = "toggle">toggle</button>
+  <select id = "cameras">
+    <option value="0">1號攝影機</option>
+    <option value="1">2號攝影機</option>
+    <option value="2">3號攝影機</option>
+    <option value="3">4號攝影機</option>
+    <option value="4">5號攝影機</option>
+    <option value="5">6號攝影機</option>
+  </select>
+  電燈亮度:<input id = "myRange" type="range" min="0.0" max="1.0" step="0.1" value="1.0">
+  <a href="https://docs.google.com/document/d/1H-WyByS0HOPglreIOs8kDzRXP_krQ2CpoW74AdwVLZo/edit?usp=sharing">
+    平面設計圖
+  </a>
+  </div>
+  <script type="text/javascript" >
+    var keys = [
+      [0, -0.6], [0.4, 0.6], [0.5, 0.6], [0.9, -0.6], [1, -0.6]
+    ];
+    var T = 5;
+    var clock = new THREE.Clock();
+    var ts = clock.getElapsedTime();
+
+    class myLight{
+      constructor(x, y, z){
+        this.spot = new THREE.SpotLight( 0xffffff1, 1, 100);
+        this.spot.position.set(x, y, z);
+        this.lamp = new THREE.Mesh(new THREE.CylinderGeometry( 5, 5, 3, 20 ), new THREE.MeshNormalMaterial());
+        this.lamp.position.set(x,y,z);
+        scene.add(this.lamp);
+        this.target  = new THREE.Object3D();
+        this.target.position.set(x,0,z);
+        scene.add(this.target);
+        this.spot.target = this.target;
+        scene.add(this.spot);
+      }
+      update(intensity){
+        this.spot.intensity = intensity;
+      }
+    }
+    class myChair{
+      constructor(x, y, z, rotate){
+        this.chair = new THREE.Object3D();
+        this.chair.position.set(x, y, z);
+        this.chair.rotation.y = rotate;
+        let part1 = new THREE.Mesh(new THREE.BoxGeometry(10,10,40), new THREE.MeshPhongMaterial());
+        part1.position.y = 10;
+        this.chair.add(part1);
+
+        let part2 = new THREE.Mesh(new THREE.BoxGeometry(10,15,6), new THREE.MeshPhongMaterial());
+        let part3 = part2.clone();
+        part2.position.set(0, 7.5, -20);
+        part3.position.set(0, 7.5, 20);
+        this.chair.add(part2, part3);
+        scene.add(this.chair);
+      }
+    }
+    class myCamera{
+      constructor(x, y, z, rotate){
+        this.camera = new THREE.Object3D();
+        this.camera.position.set(x, y, z);
+        this.camera.rotation.z = -Math.PI/2;
+        this.camera.rotation.y = rotate;
+
+
+        let view = new THREE.Object3D();
+        view.rotation.z = Math.PI/2;
+        view.rotation.y = -0.5;
+        this.camera.add(view);
+        let part1 = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 10, 20),new THREE.MeshNormalMaterial());
+        part1.position.y = 2;
+        part1.position.x = 1;
+        part1.rotation.z = -0.5;
+        this.camera.add(part1);
+
+
+        let part2 = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 20),new THREE.MeshNormalMaterial());
+        part2.position.set(6, -1, 0);
+        part2.rotation.z = Math.PI/2;
+        part2.rotation.x = Math.PI/2;
+        part2.rotation.y = -0.5;
+        this.camera.add(part2);
+
+        let part3 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 11, 20),new THREE.MeshNormalMaterial());
+        part3.position.set(7, -7, 0);
+        this.camera.add(part3);
+        scene.add (this.camera);
+
+        /*this.angle = 0;
+        this.sign = 1;*/
+
+
+      }
+
+      update(){
+      /*  this.angle += 0.005*this.sign;
+        if (this.angle > 0.3 || this.angle < -0.3)
+          this.sign *= -1;
+        this.camera.children[0].rotation.x = this.angle + Math.PI/2;
+        this.camera.children[1].rotation.x = this.angle ;*/
+        let t = clock.getElapsedTime();
+        let s = ((t - ts) % T) / T;
+
+
+
+        for (var i = 1; i < keys.length; i++) {
+          if (keys[i][0] > s) break;
+        }
+
+        let ii = i - 1;
+
+        let a = (s - keys[ii][0]) / (keys[ii + 1][0] - keys[ii][0]);
+        let intKey = keys[ii][1] * (1 - a) + keys[ii + 1][1] * a;
+
+        this.camera.children[0].rotation.x = intKey + Math.PI/2;
+        this.camera.children[1].rotation.x = intKey ;
+
+      }
+    }
+    var scene, light, camera, scam, renderer, controls;
+    var safety = false, num = 0;
+    var spotLights, chairs, cameras;
+    init();
+    animate();
+
+    $("#toggle").click(function(){
+      safety = !safety;
+    });
+    $("#cameras").change(function(){
+      num = $("#cameras").val();
+    })
+    $("#myRange").mousemove(function(){
+      spotLights.forEach(function(e){
+        e.update( $("#myRange").val() );
+      })
+    })
+    function init() {
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x888888);
+      document.body.appendChild(renderer.domElement);
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+      camera.position.y = 500;
+      camera.position.z = 100;
+
+      scam = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableKeys = false;
+
+      spotLights = createSpotlights();
+
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+    /*  var gridXZ = new THREE.GridHelper(10000, 500, 'red', 'white');
+      scene.add(gridXZ);*/
+
+      let loader = new THREE.TextureLoader();
+      loader.crossOrigin = '';
+      let wood_ground = loader.load('images/wood_ground.jpg');
+      wood_ground.repeat.set(50, 50);
+      wood_ground.wrapS = THREE.RepeatWrapping;
+      wood_ground.wrapT = THREE.RepeatWrapping;
+
+      var ground = new THREE.Mesh(new THREE.PlaneGeometry(550, 400), new THREE.MeshPhongMaterial({map: wood_ground}));
+      ground.receiveShadow = true;
+      ground.rotation.x = -Math.PI/2;
+      ground.position.y -= 1;
+      scene.add(ground);
+
+      walls = createWall();
+      walls.position.set(-125, 20, 150);
+      scene.add(walls);
+
+      chairs = createChairs();
+      cameras = createCameras();
+
+      window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    function animate() {
+
+      cameras.forEach(function(e){
+        e.update();
+      });
+      scam.matrixWorld.copy (cameras[num].camera.children[0].matrixWorld);
+      scam.matrixAutoUpdate = false;
+
+      requestAnimationFrame(animate);
+      render();
+    }
+
+    function render() {
+      let cam = safety ? scam : camera;
+      renderer.render(scene, cam);
+    }
+    function onWindowResize() {
+
+    	camera.aspect = window.innerWidth / window.innerHeight;
+    	camera.updateProjectionMatrix();
+    	renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+    function createWall(){
+
+      var walls = new THREE.Object3D();
+
+
+      var w1 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100),new THREE.MeshPhongMaterial());
+      walls.add(w1);
+
+      var w2 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400),new THREE.MeshPhongMaterial());
+      w2.position.set(50, 0, 50);
+      w2.rotation.y = Math.PI/2;
+      walls.add(w2);
+
+      var w3 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 200),new THREE.MeshPhongMaterial());
+      w3.position.set(150, 0, -50);
+      w3.rotation.y = Math.PI/2;
+      walls.add(w3);
+
+      var w4 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100),new THREE.MeshPhongMaterial());
+      w4.position.set(-100, 0, -50);
+      w4.rotation.y = Math.PI/2;
+      walls.add(w4);
+
+      var w5 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100),new THREE.MeshPhongMaterial());
+      w5.position.set(250, 0, -100);
+      walls.add(w5);
+
+      var w6 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100),new THREE.MeshPhongMaterial());
+      w6.position.set(250, 0, -300);
+      walls.add(w6);
+
+      var w7 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400),new THREE.MeshPhongMaterial());
+      w7.position.set(-150, 0, -150);
+      walls.add(w7);
+
+      var w8 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400),new THREE.MeshPhongMaterial());
+      w8.position.set(50, 0, -350);
+      w8.rotation.y = Math.PI/2;
+      walls.add(w8);
+
+      var w9 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100),new THREE.MeshPhongMaterial());
+      w9.position.set(250, 0, 0);
+      walls.add(w9);
+
+      var w10 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400),new THREE.MeshPhongMaterial());
+      w10.position.set(400, 0, -150);
+      walls.add(w10);
+
+      var w11 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 150),new THREE.MeshPhongMaterial());
+      w11.position.set(325, 0, -350);
+      w11.rotation.y = Math.PI/2;
+      walls.add(w11);
+
+      var w12 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 150),new THREE.MeshPhongMaterial());
+      w12.position.set(325, 0, 50);
+      w12.rotation.y = Math.PI/2;
+      walls.add(w12);
+
+      return walls;
+    }
+    function createSpotlights(){
+
+      var spotLights = [];
+      var pos = [
+        [-220, 50, 150],
+        [-70, 50, 150],
+        [80, 50, 150],
+        [-220, 50, -150],
+        [-70, 50, -150],
+        [80, 50, -150],
+        [-220, 50, 30],
+        [-70, 50, 30],
+        [80, 50, 30],
+        [200, 50, 150],
+        [200, 50, 0],
+        [200, 50, -150]
+      ];
+      for(let i = 0; i<pos.length ; i++){
+          spotLights[i] = new myLight(pos[i][0], pos[i][1], pos[i][2]);
+      }
+      return spotLights;
+    }
+    function createChairs(){
+
+      var chairs = [];
+      var pos = [
+        [20, 0, -50, 0],
+        [-170, 0, -50, 0],
+        [210, 0, 80, Math.PI/2],
+        [210, 0, -80, Math.PI/2]
+      ];
+      for(let i = 0; i<pos.length ; i++){
+          chairs[i] = new myChair(pos[i][0], pos[i][1], pos[i][2], pos[i][3]);
+      }
+      return chairs;
+
+    }
+    function createCameras(){
+
+      var cameras = [];
+      var pos = [
+          [135, 35, -185, -Math.PI/4],
+          [260, 35, 189, Math.PI*3/4],
+          [115, 35, -185, -Math.PI*3/4],
+          [-265, 35, 85, Math.PI/4],
+          [-265, 35, 185, Math.PI/4],
+          [115, 35, 185, Math.PI*3/4]
+      ];
+      for(let i = 0; i<pos.length ; i++){
+          cameras[i] = new myCamera(pos[i][0], pos[i][1], pos[i][2], pos[i][3]);
+
+      }
+      return cameras;
+
+    }
+      </script>
+</body>
+</html>
