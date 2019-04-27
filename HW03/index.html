@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Hw03</title>
+  <style>
+    #info {
+      position: absolute;
+      top: 85px;
+      left: 150px;
+      width: 200px;
+      padding: 10px;
+      text-align: center;
+      color: #ff0000;
+    }
+
+    #container1 {
+      width: 50vw;
+      height: 50vw;
+      float: left;
+      margin: 5px;
+    }
+
+    #safetyCameras {
+      width: 19vw;
+      float: left;
+    }
+
+    #container2,
+    #container3,
+    #container4,
+    #container5 {
+      width: 8.5vw;
+      height: 10vw;
+      margin: 2px;
+      display: inline-block;
+    }
+
+    #container6 {
+      width: 25vw;
+      height: 15vw;
+      float: left;
+      margin: 5px;
+      text-align: center;
+    }
+
+    #gallery {
+      width: 40vw;
+      height: 20vw;
+      text-align: center;
+      font-size: 2em;
+      float: left;
+      //z-index: -1;
+    }
+    #myDescription{
+      clear: both;
+      margin-top: 15px;
+      font-size: 24px;
+    }
+    select {
+      width: 120px;
+      height: 40px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/17.3.0/Tween.min.js"></script>
+  <h1 style="text-align:center"> JOJO的奇妙冒險 </h1>
+  <hr />
+  <div id="info">
+    <br>
+    電燈亮度:<input id="myRange" type="range" min="0.0" max="1.0" step="0.1" value="1.0">
+  </div>
+
+  <div id="container1"></div>
+  <div id="gallery">
+    select:
+    <select id="mySelect">
+      <option value="0">歷代主角集合1</option>
+      <option value="2">歷代主角集合2</option>
+      <option value="16">歷代主角集合3</option>
+      <option value="1">第一部到第五部主角集合</option>
+      <option value="14">第一部到第四部主角集合</option>
+      <option value="6">第一部主角喬納森·喬斯達</option>
+      <option value="7">第二部主角喬瑟夫·喬斯達</option>
+      <option value="4">第三部主角空條承太郎</option>
+      <option value="5">第四部主角東方仗助</option>
+      <option value="3">第五部主角喬魯諾·喬巴拿</option>
+      <option value="9">第六部主角空條徐倫</option>
+      <option value="8">第七部主角喬尼·喬斯達和傑洛</option>
+      <option value="10">第八部主角東方定助</option>
+      <option value="18">布加拉提小隊</option>
+      <option value="15">布加拉提</option>
+      <option value="12">岸邊露伴</option>
+      <option value="11">第二部及第三部反派集合</option>
+      <option value="13">DIO</option>
+      <option value="17">吉良吉影</option>
+      <option value="19">瓦倫泰總統</option>
+    </select>
+    <br />
+    <img src="../media/images/myGallery.png" width="300" height="150" usemap="#myMap">
+    <map name="myMap">
+      <area shape="circle" coords="275,130,17" id="camera1">
+      <area shape="circle" coords="190,20,17" id="camera2">
+      <area shape="circle" coords="190,130,17" id="camera3">
+      <area shape="circle" coords="30,130,17" id="camera4">
+    </map>
+  </div>
+  <div id="safetyCameras">
+    <div id="container2"></div>
+    <div id="container3"></div>
+    <div id="container4"></div>
+    <div id="container5"></div>
+  </div>
+  <div id="container6">
+    <button type="button" id="zoomIn">zoomIn</button>
+    <button type="button" id="panning">Stop panning</button>
+    <button type="button" id="zoomOut">zoomOut</button>
+  </div>
+  <p id="myDescription">說明</p>
+  <hr />
+  <p>《JoJo的奇妙冒險》（日語：ジョジョの奇妙な冒険）是日本漫畫家荒木飛呂彥的少年漫畫作品。簡稱JoJo。自1987年起至2004年止在《週刊少年Jump》連載，2005年後移往《Ultra Jump》連載。故事描述英國貴族喬斯達家族與吸血鬼迪奧及其後繼者間長達百年以上的對決，現系列作已進行至第八部，單行本目前總計出刊至123冊，是集英社內集數長度次多的作品。
+
+在2016年全系列累計發行量超過一億冊，改編作品橫跨了多個媒體，在1993年改編成OVA，在2007年改編成電影版，2012年推出電視動畫，2017年推出真人電影。另外還包括數款電子遊戲、卡牌遊戲、可動模型等，衍生商品的領域廣泛，包括手錶、領帶、耳機、智慧型手機、食品等。</p>
+  <script type="text/javascript">
+    var keys = [
+      [0, -0.6],
+      [0.4, 0.6],
+      [0.5, 0.6],
+      [0.9, -0.6],
+      [1, -0.6]
+    ];
+    var T = 5;
+    var clock = new THREE.Clock();
+    var ts = clock.getElapsedTime();
+
+    class myLight {
+      constructor(x, y, z) {
+        this.spot = new THREE.SpotLight(0xffffff1, 1, 150);
+        this.spot.position.set(x, y, z);
+        this.lamp = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 3, 20), new THREE.MeshNormalMaterial());
+        this.lamp.position.set(x, y, z);
+        scene.add(this.lamp);
+        this.target = new THREE.Object3D();
+        this.target.position.set(x, 0, z);
+        scene.add(this.target);
+        this.spot.target = this.target;
+        scene.add(this.spot);
+      }
+      update(intensity) {
+        this.spot.intensity = intensity;
+      }
+    }
+    class myChair {
+      constructor(x, y, z, rotate) {
+        this.chair = new THREE.Object3D();
+        this.chair.position.set(x, y, z);
+        this.chair.rotation.y = rotate;
+        let part1 = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 40), new THREE.MeshPhongMaterial());
+        part1.position.y = 10;
+        this.chair.add(part1);
+
+        let part2 = new THREE.Mesh(new THREE.BoxGeometry(10, 15, 6), new THREE.MeshPhongMaterial());
+        let part3 = part2.clone();
+        part2.position.set(0, 7.5, -20);
+        part3.position.set(0, 7.5, 20);
+        this.chair.add(part2, part3);
+        scene.add(this.chair);
+      }
+    }
+    class myCamera {
+      constructor(x, y, z, rotate) {
+        this.camera = new THREE.Object3D();
+        this.camera.position.set(x, y, z);
+        this.camera.rotation.z = -Math.PI / 2;
+        this.camera.rotation.y = rotate;
+
+
+        let view = new THREE.Object3D();
+        view.rotation.z = Math.PI / 2;
+        view.rotation.y = -0.5;
+        this.camera.add(view);
+        let part1 = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 10, 20), new THREE.MeshNormalMaterial());
+        part1.position.y = 2;
+        part1.position.x = 1;
+        part1.rotation.z = -0.5;
+        this.camera.add(part1);
+
+
+        let part2 = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 5, 20), new THREE.MeshNormalMaterial());
+        part2.position.set(6, -1, 0);
+        part2.rotation.z = Math.PI / 2;
+        part2.rotation.x = Math.PI / 2;
+        part2.rotation.y = -0.5;
+        this.camera.add(part2);
+
+        let part3 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 11, 20), new THREE.MeshNormalMaterial());
+        part3.position.set(7, -7, 0);
+        this.camera.add(part3);
+        scene.add(this.camera);
+
+        this.ready = true;
+      }
+
+      update() {
+        if (this.ready === false) return;
+        let t = clock.getElapsedTime();
+        let s = ((t - ts) % T) / T;
+        for (var i = 1; i < keys.length; i++) {
+          if (keys[i][0] > s) break;
+        }
+
+        let ii = i - 1;
+
+        let a = (s - keys[ii][0]) / (keys[ii + 1][0] - keys[ii][0]);
+        let intKey = keys[ii][1] * (1 - a) + keys[ii + 1][1] * a;
+
+        this.camera.children[0].rotation.x = intKey + Math.PI / 2;
+        this.camera.children[1].rotation.x = intKey;
+      }
+
+    }
+    var scene, light, cameras = [],
+      scam, renderer = [],
+      controls;
+    var safety = false,
+      num = 1;
+    var spotLights, chairs, safetyCameras, paintings, viewPos, viewRot;
+    var mouse = new THREE.Vector2();
+    var raycaster = new THREE.Raycaster();
+    var pickables = [];
+    var loader = new THREE.TextureLoader();
+    init();
+    animate();
+
+    $("#myRange").mousemove(function() {
+      spotLights.forEach(function(e) {
+        e.update($("#myRange").val());
+      })
+    });
+    $("#camera1").click(function() {
+      num = 1;
+    });
+    $("#camera2").click(function() {
+      num = 2;
+    });
+    $("#camera3").click(function() {
+      num = 3;
+    });
+    $("#camera4").click(function() {
+      num = 4;
+    });
+    $("#panning").click(function() {
+      ready = safetyCameras[num - 1].ready = !safetyCameras[num - 1].ready;
+      if(ready === true)
+        $("#panning").text('Stop panning');
+      else {
+        $("#panning").text('Start panning');
+      }
+    })
+    $("#zoomIn").click(function() {
+      cameras[num].zoom++;
+      cameras[num].updateProjectionMatrix();
+    })
+    $("#zoomOut").click(function() {
+      if (cameras[num].zoom > 1) {
+        cameras[num].zoom--;
+        cameras[num].updateProjectionMatrix();
+      }
+    })
+    $('#mySelect').change(function(){
+        var x = $('#mySelect').val();
+        var tween1 = new TWEEN.Tween(cameras[0].position)
+                    .to(viewPos[x])
+                    .start();
+
+        var tween2 = new TWEEN.Tween(cameras[0].rotation)
+                    .to(viewRot[x])
+                    .start();
+        $('#myDescription').text(paintings[x].name);
+    })
+    function init() {
+
+      initRenderer();
+      scene = new THREE.Scene();
+      /////主攝影機
+      var ww = $('#container1').innerWidth();
+      var hh = $('#container1').innerHeight();
+      cameras[0] = new THREE.PerspectiveCamera(60, ww / hh, 1, 10000);
+      cameras[0].position.y = 500;
+    //  cameras[0].position.z = 100;
+      /////監視攝影機
+      for (let i = 2; i < 6; i++) {
+        container = '#container' + i;
+        ww = $(container).innerWidth();
+        hh = $(container).innerHeight();
+        cameras[i - 1] = new THREE.PerspectiveCamera(60, ww / hh, 1, 1000);
+      }
+      safetyCameras = createSafetyCameras();
+      /////
+      controls = new THREE.OrbitControls(cameras[0], renderer[0].domElement);
+      controls.enableKeys = false;
+
+      /////燈光
+      spotLights = createSpotlights();
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+      //////地面
+
+      loader.crossOrigin = '';
+      let wood_ground = loader.load('../media/images/wood_ground.jpg');
+      wood_ground.repeat.set(50, 50);
+      wood_ground.wrapS = THREE.RepeatWrapping;
+      wood_ground.wrapT = THREE.RepeatWrapping;
+
+      var ground = new THREE.Mesh(new THREE.PlaneGeometry(550, 400), new THREE.MeshPhongMaterial({
+        map: wood_ground
+      }));
+      ground.receiveShadow = true;
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y -= 1;
+      scene.add(ground);
+
+      walls = createWall();
+      walls.position.set(-125, 20, 150);
+      scene.add(walls);
+
+      chairs = createChairs();
+      paintings = createPainting();
+
+      window.addEventListener('resize', onWindowResize, false);
+      document.getElementById("container1").addEventListener('mousedown', onDocumentMouseDown, false);
+    }
+
+    function initRenderer() {
+
+      for (let i = 1; i < 7; i++) {
+        container = '#container' + i;
+        renderer[i - 1] = new THREE.WebGLRenderer();
+        ww = $(container).innerWidth();
+        hh = $(container).innerHeight();
+        renderer[i - 1].setSize(ww, hh);
+        renderer[i - 1].setClearColor(0x888888);
+        $(container).append(renderer[i - 1].domElement);
+      }
+    }
+
+    function animate() {
+      /////監視攝影機移動
+      for (let i = 1; i < 5; i++) {
+        safetyCameras[i - 1].update();
+        cameras[i].matrixWorld.copy(safetyCameras[i - 1].camera.children[0].matrixWorld);
+        cameras[i].matrixAutoUpdate = false;
+      }
+      requestAnimationFrame(animate);
+      TWEEN.update();
+      render();
+    }
+
+    function render() {
+      for (let i = 0; i < 5; i++) {
+        renderer[i].render(scene, cameras[i]);
+      }
+      /////目前查看的監視攝影機
+      renderer[5].render(scene, cameras[num]);
+    }
+
+    function onWindowResize() {
+      var ww = $('#container1').innerWidth();
+      var hh = $('#container1').innerHeight();
+      cameras[0].aspect = ww / hh;
+      cameras[0].updateProjectionMatrix();
+      renderer[0].setSize(ww, hh);
+
+      for (let i = 2; i < 7; i++) {
+        container = '#container' + i;
+        ww = $(container).innerWidth();
+        hh = $(container).innerHeight();
+        renderer[i - 1].setSize(ww, hh);
+      }
+    }
+
+    function createWall() {
+
+      var walls = new THREE.Object3D();
+
+
+      var w1 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100), new THREE.MeshPhongMaterial());
+      walls.add(w1);
+
+      var w2 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400), new THREE.MeshPhongMaterial());
+      w2.position.set(50, 0, 50);
+      w2.rotation.y = Math.PI / 2;
+      walls.add(w2);
+
+      var w3 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 200), new THREE.MeshPhongMaterial());
+      w3.position.set(150, 0, -50);
+      w3.rotation.y = Math.PI / 2;
+      walls.add(w3);
+
+      var w4 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100), new THREE.MeshPhongMaterial());
+      w4.position.set(-100, 0, -50);
+      w4.rotation.y = Math.PI / 2;
+      walls.add(w4);
+
+      var w5 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100), new THREE.MeshPhongMaterial());
+      w5.position.set(250, 0, -100);
+      walls.add(w5);
+
+      var w6 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100), new THREE.MeshPhongMaterial());
+      w6.position.set(250, 0, -300);
+      walls.add(w6);
+
+      var w7 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400), new THREE.MeshPhongMaterial());
+      w7.position.set(-150, 0, -150);
+      walls.add(w7);
+
+      var w8 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400), new THREE.MeshPhongMaterial());
+      w8.position.set(50, 0, -350);
+      w8.rotation.y = Math.PI / 2;
+      walls.add(w8);
+
+      var w9 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 100), new THREE.MeshPhongMaterial());
+      w9.position.set(250, 0, 0);
+      walls.add(w9);
+
+      var w10 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 400), new THREE.MeshPhongMaterial());
+      w10.position.set(400, 0, -150);
+      walls.add(w10);
+
+      var w11 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 150), new THREE.MeshPhongMaterial());
+      w11.position.set(325, 0, -350);
+      w11.rotation.y = Math.PI / 2;
+      walls.add(w11);
+
+      var w12 = new THREE.Mesh(new THREE.BoxGeometry(5, 40, 150), new THREE.MeshPhongMaterial());
+      w12.position.set(325, 0, 50);
+      w12.rotation.y = Math.PI / 2;
+      walls.add(w12);
+
+      return walls;
+    }
+
+    function createSpotlights() {
+
+      var spotLights = [];
+      var pos = [
+        [-220, 100, 150],
+        [-70, 100, 150],
+        [80, 100, 150],
+        [-220, 100, -150],
+        [-70, 100, -150],
+        [80, 100, -150],
+        [-220, 100, 30],
+        [-70, 100, 30],
+        [80, 100, 30],
+        [200, 100, 150],
+        [200, 100, 0],
+        [200, 100, -150]
+      ];
+      for (let i = 0; i < pos.length; i++) {
+        spotLights[i] = new myLight(pos[i][0], pos[i][1], pos[i][2]);
+      }
+      return spotLights;
+    }
+
+    function createChairs() {
+
+      var chairs = [];
+      var pos = [
+        [20, 0, -50, 0],
+        [-170, 0, -50, 0],
+        [210, 0, 80, Math.PI / 2],
+        [210, 0, -80, Math.PI / 2]
+      ];
+      for (let i = 0; i < pos.length; i++) {
+        chairs[i] = new myChair(pos[i][0], pos[i][1], pos[i][2], pos[i][3]);
+      }
+      return chairs;
+
+    }
+
+    function createSafetyCameras() {
+
+      var scameras = [];
+      var pos = [
+        [260, 35, 189, Math.PI * 3 / 4],
+        [115, 35, -185, -Math.PI * 3 / 4],
+        [-265, 35, 185, Math.PI / 4],
+        [115, 35, 185, Math.PI * 3 / 4]
+      ];
+      for (let i = 0; i < pos.length; i++) {
+        scameras[i] = new myCamera(pos[i][0], pos[i][1], pos[i][2], pos[i][3]);
+
+      }
+      return scameras;
+
+    }
+
+    function createPainting() {
+      var paintings = [];
+      var pos = [{
+          url: '../media/images/jojo1.jpg',
+          x: 272,
+          y: 20,
+          z: 0,
+          r: -Math.PI / 2,
+          w: 64,
+          h: 40,
+          name: "歷代主角集合1"
+        },
+        {
+          url: '../media/images/jojo2.jpg',
+          x: 272,
+          y: 20,
+          z: 120,
+          r: -Math.PI / 2,
+          w: 64,
+          h: 40,
+          name: "第一部到第五部主角集合"
+        },
+        {
+          url: '../media/images/jojo3.jpg',
+          x: 272,
+          y: 20,
+          z: -120,
+          r: -Math.PI / 2,
+          w: 100,
+          h: 40,
+          name: "歷代主角集合2"
+        },
+        {
+          url: '../media/images/jojo4.jpg',
+          x: 80,
+          y: 20,
+          z: -197,
+          r: 0,
+          w: 64,
+          h: 40,
+          name: "第五部的主角喬魯諾·喬巴拿，是喬斯達家的宿敵——DIO和日本女性所生之子。15歳。因為DIO自頭部以下是喬納森·喬斯達的身體，所以同時擁有DIO和喬斯達家族的基因，頸部也有星形胎記，但沒有繼承吸血鬼的血統。原本的髮色是黑色，而在長大後某日突然變成和DIO一樣的金色。其個性冷靜、正直且機靈，具有豐富的科學知識及洞察力，且擅長扒手及將耳朵塞入耳孔中的技巧。本名為汐華初流乃（しおばな はるの，Shiobana Haruno），因為母親和義大利人再婚才將名字改為喬魯諾·喬巴拿。4歲時常常受到繼父的虐待，還被鎮上的其他孩子欺負，而為此對人類衍生出了不信任感。某一天救了一位被人追殺的流氓，使他的生活和心境有所改變，並立志要成為「流氓巨星」。"
+        },
+        {
+          url: '../media/images/jojo5.jpg',
+          x: -70,
+          y: 20,
+          z: -197,
+          r: 0,
+          w: 80,
+          h: 40,
+          name: "第三部的主角空條承太郎，喬瑟夫的外孫，喬納森的外玄孫。身高195公分、寡言冷傲的不良番長型學生。有抽菸的習慣。因DIO復活的關係，身體產生了變化，擁有名為替身的能力。口頭禪是「真是夠了」，也是承太郎劇中的名台詞。性格硬朗冷凜，很少說話，雖然外表看似粗獷且衝動，但實際上有著鋼鐵般的意志和神經，即使在許多令人震悚的生死關頭依然能處變不驚地冷靜應對。因外表高壯英俊，甚受女生歡迎，但非常討厭聒噪煩人的女性。"
+        },
+        {
+          url: '../media/images/jojo6.jpg',
+          x: -215,
+          y: 20,
+          z: -197,
+          r: 0,
+          w: 48,
+          h: 40,
+          name: "第四部的主角東方仗助。特徵是飛機頭及不良少年般的打扮，喜歡玩電視遊戲。口頭禪是「GREAT」（グレート）。就讀葡萄丘高中一年級，和億泰、康一是同學。很受女性歡迎。個性溫和善良，亦具強烈正義感，但只要有人批評他的髮型，他就會勃然大怒並抓狂似的發動攻擊；這是因為在他四歲那一年、DIO覺醒替身能力讓他高燒不退，期間受到一個神秘飛機頭少年的幫忙，被他的精神所感動、因此留起和他一樣的髮型，也將他做為生活態度的效法對象。"
+        },
+        {
+          url: '../media/images/jojo7.jpg',
+          x: 70,
+          y: 20,
+          z: 97,
+          r: -Math.PI,
+          w: 28,
+          h: 40,
+          name: "第一部的主角喬納森·喬斯達，男性。他自小就立志成為紳士，但由於迪奧的陷害，使得他的青春並不愉快。在父親被迪奧刺殺之後、喬納森向波紋高手齊貝林男爵學習波紋氣功。在故事最後，喬斯達瓦解了迪奧的勢力並打倒了迪奧，但最後被只剩頭部的迪奧使用空裂眼刺驚射中了頸部 沉眠在大西洋的海底。得年21歲，其肉體被迪奧奪取 。"
+        },
+        {
+          url: '../media/images/jojo8.jpg',
+          x: -35,
+          y: 20,
+          z: 97,
+          r: -Math.PI,
+          w: 28,
+          h: 40,
+          name: "第二部的主角喬瑟夫·喬斯達，喬納森的孫子，承太郎的祖父，東方仗助的父親，1920年9月27日出生於英國倫敦，由祖母一手帶大，18歲之後搬到美國。他和祖父喬納森長得非常相似，但性格散漫、輕浮還有些好色，完全算不上是紳士，但對連名字都不知道、遭到種族歧視的黑人史摩基展現出友情。雖然他天生就會波紋但不喜歡修練，直到捲入與柱之男的鬥爭後才認真學習波紋。他擅長透過運用戰場上的各種素材和道具製作陷阱和機關，巧妙地以奇計制勝，在接連打敗四個柱之男之後，他在結局與絲吉Q結婚，成立了「喬斯達不動產公司」，並在第三部擔任重要配角、在第四部擔任次要配角。"
+        },
+        {
+          url: '../media/images/jojo9.jpg',
+          x: -272,
+          y: 20,
+          z: 40,
+          r: Math.PI / 2,
+          w: 28,
+          h: 40,
+          name: "第七部主角喬尼·喬斯達，19歲，美國人。曾經是頂尖騎手，但因意外而下半身癱瘓，進而消失在賽馬界。在SBR開賽前夕邂逅傑洛，偶然觸碰到其鐵球的他竟能站起，為了得知隱藏在鐵球上的祕密，跟隨傑洛、結成搭檔。隨著故事的進展，他逐漸面對自己過去內心的陰影，並逐步復健、最後得以康復。傑洛·齊貝林，故事的另一個主角，24歲。牙齒上雕著「GO! GO! ZEPPELI」的文字，臉頰上有胎記。家族是那不勒斯王國代代相傳的處刑官，由於一起冤獄事件、傑洛決定參加SBR比賽並取得優勝，試圖以此讓國王特赦該犯人。"
+        },
+        {
+          url: '../media/images/jojo10.jpg',
+          x: -272,
+          y: 20,
+          z: -120,
+          r: Math.PI / 2,
+          w: 72,
+          h: 40,
+          name: "第六部的主角空條徐倫，系列作品中唯一一位女性的主角。原本是普通的不良少女，因為交通意外而遭逮捕，處15年徒刑。但這其實是普奇神父和徐倫的辯護律師策劃的冤獄。被父親寄來的護身符中的「箭的碎片」割傷而將其拋棄，卻因此覺醒了替身能力。在得知自己入獄其實是遭人設計、父親承太郎為了救她而遭白蛇偷襲奪走「記憶DISC」和「替身DISC」變成植物人狀態後便決心留在監獄，伺機奪回父親的記憶與替身，並和策劃這些計謀的幕後黑手普奇神父展開了對戰。"
+        },
+        {
+          url: '../media/images/jojo11.jpg',
+          x: -220,
+          y: 20,
+          z: 97,
+          r: -Math.PI,
+          w: 72,
+          h: 40,
+          name: "第八部主角東方定助，特徵是戴著水手帽和穿著水手服，喪失了記憶。約19歳。有著能用目測就量出物體全長的特技。個性相對較為懶散。睡覺會睡在床褥與床之間，並在上面放上重物以施加壓力。被東方家收為養子，有四粒睪丸，眼球有兩種顏色，舌頭也是如此。"
+        },
+        {
+          url: '../media/images/jojo12.jpg',
+          x: 128,
+          y: 20,
+          z: 150,
+          r: Math.PI / 2,
+          w: 72,
+          h: 40,
+          name: "第二部及第三部反派集合"
+        },
+        {
+          url: '../media/images/jojo13.jpg',
+          x: 122,
+          y: 20,
+          z: 150,
+          r: -Math.PI / 2,
+          w: 23,
+          h: 40,
+          name: "第四部高人氣配角岸邊露伴。以代表作《紅黑少年》聞名的20歲超人氣漫畫家，性格非常地強勢高傲、唯我獨尊，鄙視自己以外所有的漫畫家。他的繪畫速度極快，不是為了錢或名聲而畫漫畫，而是為了讓讀者閱讀而畫，最重視「寫實感」，為了讓漫畫作品更加寫實，會作出舔蜘蛛、買下一大片山林等在旁人眼裡怪異的行為。"
+        },
+        {
+          url: '../media/images/jojo14.jpg',
+          x: -272,
+          y: 20,
+          z: 150,
+          r: Math.PI / 2,
+          w: 23,
+          h: 40,
+          name: "DIO，第一部及第三部的最終反派。第一部最後跟喬納森.喬斯達在船上同歸於盡並沉入大西洋。一百年後，有人打撈起DIO的棺材，令DIO復活，DIO的頭跟喬納森的身體融合了。之後、DIO遇見恩雅婆婆，用「箭」引發了替身產生了替身能力，並以埃及為根據地擴大自己的勢力。"
+        },
+        {
+          url: '../media/images/jojo15.jpg',
+          x: 128,
+          y: 20,
+          z: -150,
+          r: Math.PI / 2,
+          w: 72,
+          h: 40,
+          name: "第一部到第四部主角集合"
+        },
+        {
+          url: '../media/images/jojo16.jpg',
+          x: 0,
+          y: 20,
+          z: 197,
+          r: -Math.PI,
+          w: 72,
+          h: 40,
+          name: "第五部高人氣配角布加拉提。男性。20歲。能透過舔別人的汗水來判斷他人有沒有說謊。對組織很忠誠，對自己的部下也很嚴格。實際上是個溫柔的人，有時甚至會將他人的順位放在自己之前採取行動。因為這樣的關係，在城市裡的人望甚高。戰鬥時會喊「阿哩阿哩阿哩……Arrivederci（再會了）！」。"
+        },
+        {
+          url: '../media/images/jojo17.jpg',
+          x: 128,
+          y: 20,
+          z: 50,
+          r: Math.PI / 2,
+          w: 72,
+          h: 40,
+          name: "歷代主角集合3"
+        },
+        {
+          url: '../media/images/jojo18.jpg',
+          x: -220,
+          y: 20,
+          z: 197,
+          r: -Math.PI,
+          w: 30,
+          h: 40,
+          name: "第四部最終反派吉良吉影。殺害48名年輕女性的連續殺人魔。33歲的壯年男子，外貌與普通的上班族無異，於龜友百貨公司的事業部任職。他毫無野心，從來不主動與人起爭議，渴望過著像植物一樣安穩平順的生活，是一個和平主義者。他的性格深沉而內斂，生活規律且平凡，沒有結婚，亦無密友。他不渴望權力、不追求升遷、也不計較勝負。不抽菸、酒僅只於淺嘗，有潔癖，興趣是蒐集自己剪下來的指甲並裝進小瓶子裡。每天睡前都會做20分鐘的柔軟操。實際上有著殘忍的本性，而且有著戀手癖。當他第一次看到達文西的名畫蒙娜麗莎那交疊的雙手時，他就勃起了。他每隔一段時間便會殺害年輕貌美的女性，並砍下她們的手，吉良稱這個行為是「交女友」，而當被切下來的斷手發出臭味時、就會「分手」並開始找下個目標。"
+        },
+        {
+          url: '../media/images/jojo19.jpg',
+          x: 0,
+          y: 20,
+          z: 103,
+          r: 0,
+          w: 28,
+          h: 40,
+          name: "布加拉提小隊，第五部的主要角色，由布加拉提、喬魯諾、米斯達、納蘭迦、福葛和阿帕基組成"
+        },
+        {
+          url: '../media/images/jojo20.jpg',
+          x: -220,
+          y: 20,
+          z: 103,
+          r: 0,
+          w: 28,
+          h: 40,
+          name: "第七部最終反派瓦倫泰總統。第23任美國總統（本作品虛構，真正的第23任美國總統是班傑明·哈里森），1847年9月20日出生。他出身軍人家庭，在得到「聖人的遺體」的一部分後、他的政治之途一路順遂、並當上了總統。他具有高度的愛國心，一切的行動都是為了美國的榮耀，能為了美國的榮耀用盡任何手段、不惜一切代價，並認為自己的愛國行為沒有一絲錯誤。他在人民之間的支持度高達90%。"
+        }
+      ]
+      viewPos = [
+        {x: 215, y: 20,z: 0},///0
+        {x: 220, y: 20,z: 120},///1
+        {x: 200, y: 20,z: -120},///2
+        {x: 80, y: 20,z: -130},///3
+        {x: -70, y: 20,z: -130},///4
+        {x: -215, y: 20,z: -150},///5
+        {x: 70, y: 20,z: 50},///6
+        {x: -35, y: 20,z: 50},///7
+        {x: -240, y: 20,z: 40},///8
+        {x: -200, y: 20,z: -120},///9
+        {x: -220, y: 20,z: 40},///10
+        {x: 190, y: 20,z: 150},///11
+        {x: 90, y: 20,z: 150},///12
+        {x: -240, y: 20,z: 150},///13
+        {x: 180, y: 20,z: -150},///14
+        {x: 0, y: 20,z: 140},///15
+        {x: 190, y: 20,z: 50},///16
+        {x: -220, y: 20,z: 160},///17
+        {x: 0, y: 20,z: 140},///18
+        {x: -220, y: 20,z: 140},///19
+      ];
+      viewRot = [
+        {x: 0, y :-Math.PI/2, z: 0},///0
+        {x: 0, y :-Math.PI/2, z: 0},///1
+        {x: 0, y :-Math.PI/2, z: 0},///2
+        {x: 0, y :0, z: 0},///3
+        {x: 0, y :0, z: 0},///4
+        {x: 0, y :0, z: 0},///5
+        {x: 0, y :Math.PI, z: 0},///6
+        {x: 0, y :Math.PI, z: 0},///7
+        {x: 0, y :Math.PI/2, z: 0},///8
+        {x: 0, y :Math.PI/2, z: 0},///9
+        {x: 0, y :Math.PI, z: 0},///10
+        {x: 0, y :Math.PI/2, z: 0},///11
+        {x: 0, y :-Math.PI/2, z: 0},///12
+        {x: 0, y :Math.PI/2, z: 0},///13
+        {x: 0, y :Math.PI/2, z: 0},///14
+        {x: 0, y :Math.PI, z: 0},///15
+        {x: 0, y :Math.PI/2, z: 0},///16
+        {x: 0, y :Math.PI, z: 0},///17
+        {x: 0, y :0, z: 0},///18
+        {x: 0, y :0, z: 0},///19
+      ]
+      for (let i = 0; i < pos.length; i++) {
+        paintings[i] = new THREE.Mesh(new THREE.PlaneGeometry(pos[i].w, pos[i].h),
+          new THREE.MeshPhongMaterial({
+            map: loader.load(pos[i].url)
+          }));
+        paintings[i].position.set(pos[i].x, pos[i].y, pos[i].z);
+        paintings[i].rotation.y = pos[i].r;
+        paintings[i].name = pos[i].name;
+        scene.add(paintings[i]);
+        pickables.push(paintings[i]);
+      }
+      return paintings;
+    }
+
+    function onDocumentMouseDown(event) {
+      event.preventDefault();
+
+      var viewportPos = $('#container1').get(0).getBoundingClientRect();
+      mouse.x = ((event.clientX - viewportPos.left) / $('#container1').innerWidth()) * 2 - 1;
+      mouse.y = -((event.clientY - viewportPos.top) / $('#container1').innerHeight()) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, cameras[0]);
+      var intersects = raycaster.intersectObjects(pickables);
+      if (intersects.length > 0) {
+        $('#myDescription').text(intersects[0].object.name);
+      }
+    }
+  </script>
+</body>
+
+</html>

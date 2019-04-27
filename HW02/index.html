@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html >
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -188,7 +188,7 @@
 
       let loader = new THREE.TextureLoader();
       loader.crossOrigin = '';
-      let wood_ground = loader.load('images/wood_ground.jpg');
+      let wood_ground = loader.load('../media/images/wood_ground.jpg');
       wood_ground.repeat.set(50, 50);
       wood_ground.wrapS = THREE.RepeatWrapping;
       wood_ground.wrapT = THREE.RepeatWrapping;
