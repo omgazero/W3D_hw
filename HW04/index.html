@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" >
+  <title>HW04</title>
+  <style >
+    #container{
+      width: 40vw;
+      height: 40vw;
+      border: 5px #ff19c9 solid;
+      float: left;
+      margin:0px 10px;
+    }
+    #myButton{
+      width: 150px;
+      height: 50px;
+      font-size:40px;
+    }
+  </style>
+</head>
+<body>
+  <audio id="soundtrack" controls>
+    <source src="../media/SE/collision_wall.wav" type='audio/wav'>
+  </audio>
+  <H1 style="text-align:center;" >Home Work4</H1><hr>
+  <div id="container"></div>
+  <div style="font-size:30px;text-align:center;">
+    Radius:<input type="range" id="Radius" min="1.0" max="3.0" value="1.0" step="0.01">
+    Sound:<input type="checkbox" id="myCheck">
+    <p id="myText" >Not Collision!</p>
+    <button type="button" id="myButton">Start</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script type="text/javascript">
+    var frame, scene, camera, renderer, light;
+    var ball, rectangle, planes = [], ready = false, sound = false, audio;
+    var mouse = new THREE.Vector2();
+    var raycaster = new THREE.Raycaster();
+    var pickables = [];
+
+    class Ball{
+      constructor(x, z, R){
+        this.pos = new THREE.Vector3(x, 1, z);
+    		this.vel = new THREE.Vector3();
+    		this.force = new THREE.Vector3();
+    		this.m = 1;
+        this.radius = R;
+        this.scale = 1;
+        this.mesh = new THREE.Mesh(new THREE.CircleGeometry(R, 20), new THREE.MeshBasicMaterial({color:'green'}));
+        this.mesh.rotation.x = -Math.PI/2;
+        scene.add(this.mesh);
+      }
+      update(dt){
+        this.vel.add(this.force.clone().multiplyScalar(dt));
+        this.pos.add(this.vel.clone().multiplyScalar(dt));
+        this.collidingPlanes(planes);
+        this.mesh.position.copy(this.pos);
+      }
+      collidingPlanes(planes){
+        const EPS = 1e-3;
+        const CR = 0.96;
+        for(let i = 0 ; i < planes.length; i++){
+          let plane = planes[i];
+          let point = this.pos.clone().sub(plane.ptOnPl);
+
+          if( point.dot(plane.normal) < EPS + this.radius*this.scale ){
+            this.pos.copy( plane.ptOnPl.clone().add( point.projectOnPlane( plane.normal ) ) );
+            this.pos.add( plane.normal.clone().multiplyScalar( this.radius*this.scale ) );
+
+            this.vel.sub( plane.normal.clone().multiplyScalar( (1+CR ) * this.vel.dot( plane.normal )) );
+          }
+        }
+      }
+      changeSize(x){
+        this.scale = x;
+        this.mesh.scale.x = x;
+        this.mesh.scale.y = x;
+        this.mesh.scale.z = x;
+
+      }
+    }
+    class Plane{
+    	constructor(localPointOnPlane, localNormal, mesh){
+
+    		this.localPtOnPl = localPointOnPlane.clone();
+    		this.localNormal = localNormal.clone();
+    		this.mesh = mesh;
+    		scene.add(mesh);
+    	}
+    	update(){
+    		this.mesh.updateMatrixWorld();
+    		this.ptOnPl = this.mesh.localToWorld( this.localPtOnPl.clone() );
+    		let normalMat = new THREE.Matrix3().getNormalMatrix( this.mesh.matrixWorld );
+    		this.normal = this.localNormal.clone().applyMatrix3( normalMat ).normalize();
+    	}
+    }
+    class Rectangle{
+      constructor(mesh, width, height){
+      	this.mesh = mesh;
+        scene.add(mesh);
+        this.max = [width/2, height/2];
+        this.min = [-width/2, -height/2];
+
+      }
+    }
+
+    $.ajax({async:false});
+    $( document ).ready(function() {
+
+      $('#Radius').mousemove(function(){
+         ball.changeSize($("#Radius").val());
+      });
+      $('#myButton').click(function(){
+        ready = !ready;
+        if(ready === true)
+          $('#myButton').html('Pause');
+        else {
+          $('#myButton').html('Start');
+        }
+      });
+      $('myCheck').click(function(){
+        sound = !sound;
+      });
+    });
+
+    init();
+    animate();
+
+    function init() {
+      audio = document.getElementById("soundtrack");
+    //  audio.volume = 0.2;
+      renderer = new THREE.WebGLRenderer();
+      var ww = $('#container').innerWidth();
+      var hh = $('#container').innerHeight();
+      renderer.setSize(ww, hh);
+      renderer.setClearColor(0xffffff);
+      $('#container').append(renderer.domElement);
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(45, ww / hh, 1, 1000);
+      camera.position.y = 150;
+      camera.rotation.x = -Math.PI/2;
+
+    //  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      light = new THREE.DirectionalLight(0xffffff);
+      light.position.set(50, 100, 0);
+      scene.add(light);
+
+      var gridHelper = new THREE.GridHelper( 130, 10 );
+      scene.add( gridHelper );
+      var ground = new THREE.Mesh(new THREE.PlaneGeometry(150, 150), new THREE.MeshBasicMaterial());
+      ground.position.y = -1;
+      ground.rotation.x = -Math.PI/2;
+      scene.add(ground);
+      pickables.push(ground);
+
+      posx = 50-Math.random()*100;
+      posz = 50-Math.random()*100;
+      ball = new Ball(0, 0, 10);
+
+      posx = 50-Math.random()*100;
+      posz = 50-Math.random()*100;
+      ball.vel.set(15, 0, 1);
+
+      rectangle = new Rectangle( new THREE.Mesh( new THREE.BoxGeometry( 30, 5, 10 ), new THREE.MeshBasicMaterial({color:'lightgray'}) ), 30, 10 );
+
+      bulidPlane();
+
+      window.addEventListener('resize', onWindowResize, false);
+      document.getElementById("container").addEventListener('mousedown', onDocumentMouseDown, false);
+      //setInterval(isColliding(), 100);
+    }
+    function animate() {
+
+      if(ready === true)
+        ball.update(0.1);
+      isColliding();
+
+      requestAnimationFrame(animate);
+      render();
+    }
+    function render() {
+      renderer.render(scene, camera);
+    }
+    function bulidPlane(){
+      let plane, wall;
+      ///上
+      wall = new THREE.Mesh( new THREE.BoxGeometry( 150, 10, 10 ), new THREE.MeshPhongMaterial({color: 'lightgray'}) );
+      wall.position.z = 70;
+
+      plane = new Plane( new THREE.Vector3( 0, 0, -5 ), new THREE.Vector3( 0, 0, -1 ), wall );
+      plane.update();
+      planes.push(plane);
+      ///下
+      wall = new THREE.Mesh( new THREE.BoxGeometry( 150, 10, 10 ), new THREE.MeshPhongMaterial({color: 'lightgray'}) );
+      wall.position.z = -70;
+
+      plane = new Plane( new THREE.Vector3( 0, 0, 5 ), new THREE.Vector3( 0, 0, 1 ), wall );
+      plane.update();
+      planes.push(plane);
+      ///右
+      wall = new THREE.Mesh( new THREE.BoxGeometry( 150, 10, 10 ), new THREE.MeshPhongMaterial({color: 'lightgray'}) );
+      wall.position.x = 70;
+      wall.rotation.y = Math.PI/2;
+      plane = new Plane( new THREE.Vector3( 0, 0, -5 ), new THREE.Vector3( 0, 0, -1 ), wall );
+      plane.update();
+      planes.push(plane);
+
+      ///左
+      wall = new THREE.Mesh( new THREE.BoxGeometry( 150, 10, 10 ), new THREE.MeshPhongMaterial({color: 'lightgray'}) );
+      wall.position.x = -70;
+      wall.rotation.y = Math.PI/2;
+      plane = new Plane( new THREE.Vector3( 0, 0, 5 ), new THREE.Vector3( 0, 0, 1 ), wall );
+      plane.update();
+      planes.push(plane);
+    }
+    function isColliding(){
+      let normalMat = new THREE.Matrix3().getNormalMatrix( rectangle.mesh.matrixWorld );
+      let xR = new THREE.Vector3(1, 0, 0).applyMatrix3(normalMat).normalize();
+      let zR = new THREE.Vector3(0, 0, 1).applyMatrix3(normalMat).normalize();
+
+      let x = ball.pos.clone().sub(rectangle.mesh.position).dot(xR).toFixed(3);
+      let z = ball.pos.clone().sub(rectangle.mesh.position).dot(zR).toFixed(3);
+
+      var param = {
+        R:[rectangle.max, rectangle.min],
+        C:[x, z, ball.radius*ball.scale]
+      }
+      var outputStr = jQuery.param(param);
+
+      $.get( "http://127.0.0.1:1337/api?"+ outputStr, function( data ) {
+					if(data && data.output){
+
+
+            if(data.output === '1'){
+              $('#myText').text('Collision!');
+              ball.mesh.material.color.set('red');
+              if(sound === true)
+                audio.play();
+            }
+            else{
+              $('#myText').text('Not Collision!');
+              ball.mesh.material.color.set('green');
+            }
+					}
+				});
+    }
+    function onWindowResize() {
+      var ww = $('#container').innerWidth();
+      var hh = $('#container').innerHeight();
+      camera.aspect = ww / hh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(ww, hh);
+    }
+    function onDocumentMouseDown(event) {
+      event.preventDefault();
+
+      var viewportPos = $('#container').get(0).getBoundingClientRect();
+      mouse.x = ((event.clientX - viewportPos.left) / $('#container').innerWidth()) * 2 - 1;
+      mouse.y = -((event.clientY - viewportPos.top) / $('#container').innerHeight()) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      var intersects = raycaster.intersectObjects(pickables);
+      if (intersects.length > 0) {
+        rectangle.mesh.position.copy(intersects[0].point);
+        rectangle.mesh.updateMatrixWorld();
+      }
+    }
+  </script>
+</body>
+</html>
