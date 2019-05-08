@@ -21,8 +21,8 @@
   </style>
 </head>
 <body>
-  <audio id="soundtrack" controls>
-    <source src="../media/SE/collision_wall.wav" type='audio/wav'>
+  <audio id="soundtrack" >
+    <source src="https://omgazero.github.io/W3D_hw/media/SE/collision_wall.wav" type='audio/wav'>
   </audio>
   <H1 style="text-align:center;" >Home Work4</H1><hr>
   <div id="container"></div>
@@ -34,7 +34,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
-  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
   <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
   <script type="text/javascript">
     var frame, scene, camera, renderer, light;
@@ -109,9 +109,9 @@
       }
     }
 
-    $.ajax({async:false});
-    $( document ).ready(function() {
 
+    $( document ).ready(function() {
+      jQuery.ajaxSetup({async:false});
       $('#Radius').mousemove(function(){
          ball.changeSize($("#Radius").val());
       });
@@ -123,7 +123,7 @@
           $('#myButton').html('Start');
         }
       });
-      $('myCheck').click(function(){
+      $('#myCheck').click(function(){
         sound = !sound;
       });
     });
@@ -133,7 +133,6 @@
 
     function init() {
       audio = document.getElementById("soundtrack");
-    //  audio.volume = 0.2;
       renderer = new THREE.WebGLRenderer();
       var ww = $('#container').innerWidth();
       var hh = $('#container').innerHeight();
@@ -143,11 +142,17 @@
 
       scene = new THREE.Scene();
 
+      stats = new Stats();
+      stats.showPanel(0);
+      stats.domElement.style.position = 'absolute';
+      stats.domElement.style.left = '0px';
+      stats.domElement.style.top = '0px';
+      document.body.appendChild(stats.domElement);
+
       camera = new THREE.PerspectiveCamera(45, ww / hh, 1, 1000);
       camera.position.y = 150;
       camera.rotation.x = -Math.PI/2;
 
-    //  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
       light = new THREE.DirectionalLight(0xffffff);
       light.position.set(50, 100, 0);
@@ -161,13 +166,13 @@
       scene.add(ground);
       pickables.push(ground);
 
-      posx = 50-Math.random()*100;
-      posz = 50-Math.random()*100;
-      ball = new Ball(0, 0, 10);
+      let posx = 50-Math.random()*100;
+      let posz = 50-Math.random()*100;
+      ball = new Ball(posx, posz, 10);
 
       posx = 50-Math.random()*100;
       posz = 50-Math.random()*100;
-      ball.vel.set(15, 0, 1);
+      ball.vel.set(posx, 0, posz);
 
       rectangle = new Rectangle( new THREE.Mesh( new THREE.BoxGeometry( 30, 5, 10 ), new THREE.MeshBasicMaterial({color:'lightgray'}) ), 30, 10 );
 
@@ -175,10 +180,11 @@
 
       window.addEventListener('resize', onWindowResize, false);
       document.getElementById("container").addEventListener('mousedown', onDocumentMouseDown, false);
-      //setInterval(isColliding(), 100);
+
     }
     function animate() {
-
+      stats.begin();
+      stats.end();
       if(ready === true)
         ball.update(0.1);
       isColliding();
@@ -242,6 +248,7 @@
             if(data.output === '1'){
               $('#myText').text('Collision!');
               ball.mesh.material.color.set('red');
+
               if(sound === true)
                 audio.play();
             }

@@ -1,7 +1,7 @@
 
 #include "GraphicsGems.h"
 #include <stdio.h>
-#include <stdlib.h>  
+#include <stdlib.h>
 boolean Check_Intersect(Box2 *R,Point2 *C, double Rad){
  double Rad2;
 
