@@ -95,11 +95,11 @@
         turn *= -1;
 
       angle += 0.005 * turn;
-      if (meshs['camera'] != undefined) {
+      if (meshs['Camera'] != undefined) {
 
         veiwcamera.lookAt(portal.position);
-        veiwcamera.position.copy(meshs['camera'].position.add(new THREE.Vector3(0, 0, -5)));
-        meshs['camera'].position.set(-40 * Math.cos(angle), 50, 40 * Math.sin(angle));
+        veiwcamera.position.copy(meshs['Camera'].position.add(new THREE.Vector3(0, 0, -5)));
+        meshs['Camera'].position.set(-40 * Math.cos(angle), 50, 40 * Math.sin(angle));
 
         /////
 
