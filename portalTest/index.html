@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS test</title>
+</head>
+
+<body>
+  <input type="button" id="toggle" value="toggle">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/MTLLoader.js"></script>
+  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/OBJLoader.js"></script>
+  <script type="text/javascript">
+    var frame, scene, camera, veiwcamera, renderer, light, controls;
+    var bufferscene, bufferTexture, bufferCamera, cube, portal;
+    var meshs = [],
+      meshNum = 0;
+    var toggle = false,
+      angle = 0,
+      turn = 1;
+    var portalHalfWidth, portalHalfHeight, portalPosition;
+    $('#toggle').click(function() {
+      toggle = !toggle;
+    });
+    init();
+    animate();
+
+    function init() {
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x888888);
+      document.body.appendChild(renderer.domElement);
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+      camera.position.y = 200;
+      camera.position.z = 200;
+
+      veiwcamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+
+      light = new THREE.DirectionalLight(0xffffff);
+      light.position.set(50, 100, 100);
+      scene.add(light);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+
+      ///////////////////
+      bufferScene = new THREE.Scene();
+      bufferCamera = new THREE.PerspectiveCamera(60, 1, 0.5, 2000);
+      bufferCamera.position.z = 50;
+      bufferCamera.position.y = 10;
+
+      helper = new THREE.CameraHelper(veiwcamera);
+      scene.add(helper);
+
+      lightA = new THREE.AmbientLight(0xffffff);
+      bufferScene.add(lightA);
+      lightB = new THREE.DirectionalLight(0xffffff);
+      lightB.position.set(20, 20, 20);
+      bufferScene.add(lightB);
+
+      bufferTexture = new THREE.WebGLRenderTarget(
+        1024, 1024, {
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.NearestFilter
+        });
+      ///////////////////
+      portal = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshPhongMaterial({
+        map: bufferTexture.texture
+      }));
+      portal.position.y = 50;
+      portal.position.z = -50;
+      scene.add(portal);
+
+
+
+      var gridXY = new THREE.GridHelper(200, 20, 'red', 'white');
+      scene.add(gridXY);
+
+      readModel('Astronaut');
+      readModel('camera');
+
+    }
+
+    function animate() {
+
+      if (angle > 3.1 || angle < 0)
+        turn *= -1;
+
+      angle += 0.005 * turn;
+      if (meshs['camera'] != undefined) {
+
+        veiwcamera.lookAt(portal.position);
+        veiwcamera.position.copy(meshs['camera'].position.add(new THREE.Vector3(0, 0, -5)));
+        meshs['camera'].position.set(-40 * Math.cos(angle), 50, 40 * Math.sin(angle));
+
+        /////
+
+        bufferCamera.position.set(veiwcamera.position.x, 0, veiwcamera.position.y);
+        bufferCamera.quaternion.copy(portal.quaternion);
+
+        portalHalfWidth = 50;
+        portalHalfHeight = 50;
+        portalPosition = new THREE.Vector3().copy(portal.position);
+        bufferCamera.updateMatrixWorld();
+        bufferCamera.worldToLocal(portalPosition);
+
+        let left = portalPosition.x - portalHalfWidth;
+        let right = portalPosition.x + portalHalfWidth;
+        let top = portalPosition.y + portalHalfHeight;
+        let bottom = portalPosition.y - portalHalfHeight;
+
+        const near = 0.01;
+        const distance = Math.abs(veiwcamera.position.z - portalPosition.z);
+        const scale = near / distance;
+        left *= scale;
+        right *= scale;
+        top *= scale;
+        bottom *= scale;
+
+        bufferCamera.projectionMatrix = (new THREE.Matrix4()).makePerspective(left, right, top, bottom, near, 1000);
+
+        //  console.log(bufferCamera.projectionMatrix);
+        /////
+
+      }
+      requestAnimationFrame(animate);
+      render();
+    }
+
+    function render() {
+      renderer.setRenderTarget(bufferTexture);
+      renderer.render(bufferScene, bufferCamera);
+      renderer.setRenderTarget(null);
+      if (toggle === false)
+        renderer.render(scene, camera);
+      else
+        renderer.render(scene, veiwcamera);
+    }
+    /// ReadModels
+
+    function readModel(modelName, targetSize = 40) {
+      var onProgress = function(xhr) {
+        if (xhr.lengthComputable) {
+          var percentComplete = xhr.loaded / xhr.total * 100;
+          console.log(Math.round(percentComplete, 2) + '% downloaded');
+        }
+      };
+      var onError = function(xhr) {};
+      var mtlLoader = new THREE.MTLLoader();
+      mtlLoader.setPath('models/' + modelName + '/');
+      mtlLoader.load(modelName + '.mtl', function(materials) {
+        materials.preload();
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('models/' + modelName + '/');
+        objLoader.load(modelName + '.obj', function(object) {
+
+          let theObject = unitize(object, targetSize);
+          //  theObject.rotation.x = Math.PI / 2;
+          meshs[modelName] = theObject;
+          if (modelName === 'Astronaut') {
+            //meshs[modelName].position.set(0,0,0);
+            bufferScene.add(meshs[modelName]);
+          } else {
+            meshs[modelName].rotation.y = Math.PI;
+            scene.add(meshs[modelName]);
+          }
+        }, onProgress, onError);
+      });
+    };
+
+    function unitize(object, targetSize) {
+
+      // find bounding box of 'object'
+      var box3 = new THREE.Box3();
+      box3.setFromObject(object);
+      var size = new THREE.Vector3();
+      size.subVectors(box3.max, box3.min);
+      var center = new THREE.Vector3();
+      center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+
+      console.log('center: ' + center.x + ', ' + center.y + ', ' + center.z);
+      console.log('size: ' + size.x + ', ' + size.y + ', ' + size.z);
+
+      // uniform scaling according to objSize
+      var objSize = Math.max(size.x, size.y, size.z);
+      var scaleSet = targetSize / objSize;
+
+      var theObject = new THREE.Object3D();
+      theObject.add(object);
+      object.scale.set(scaleSet, scaleSet, scaleSet);
+      object.position.set(-center.x * scaleSet, -center.y * scaleSet + 10, -center.z * scaleSet);
+
+      return theObject;
+    };
+
+    ///
+  </script>
+</body>
+
+</html>

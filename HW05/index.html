@@ -5,16 +5,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HW05</title>
-  <style >
-    #count{
+  <style>
+    #count {
       position: absolute;
-      border:2px solid;
-      border-radius:50%;
-      background:orange;
-      text-align:center;
+      border: 2px solid;
+      border-radius: 50%;
+      background: orange;
+      text-align: center;
       font-size: 40px;
-      line-height:10vw;
-      top:40%;
+      line-height: 10vw;
+      top: 40%;
       left: 40%;
       width: 10vw;
       height: 10vw;
@@ -62,10 +62,18 @@
     var start = false;
     class Car {
       constructor(R, mesh) {
-        this.mesh = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 10), new THREE.MeshBasicMaterial());
-      //  this.mesh.rotation.x = -Math.PI/2;
-      //  this.mesh = mesh;
-        this.mesh.material.visible = false;
+        //  this.mesh = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 10), new THREE.MeshBasicMaterial());
+        //  this.mesh.rotation.x = -Math.PI/2;
+
+        mesh.traverse(function(child) {
+          if (child instanceof THREE.Mesh) {
+
+            child.material.forEach(function(e){
+              e.visible = false;
+            });
+          };
+        });
+        this.mesh = mesh;
         scene.add(this.mesh);
 
         this.engine = true;
@@ -74,6 +82,7 @@
         this.theta = 0;
         this.R = R;
         this.mesh.position.set(this.R * Math.cos(this.theta), 0, -this.R * Math.sin(this.theta));
+        this.mesh.rotation.y = -Math.PI/2;
         this.clock = new THREE.Clock();
         this.step = false;
       }
@@ -85,7 +94,7 @@
 
           this.theta += this.omega * dt;
           this.mesh.position.set(this.R * Math.cos(this.theta), 0, -this.R * Math.sin(this.theta));
-          this.mesh.rotation.y = this.theta;
+          this.mesh.rotation.y = this.theta - Math.PI/2;
 
           if (this.step) {
             this.omega += 0.1;
@@ -115,7 +124,7 @@
         console.log('myID = ' + myID);
       });
       ///準備開始
-      socket.on('game_start', function(e){
+      socket.on('game_start', function(e) {
         gameCountDown();
       });
       ///傳送step狀態
@@ -139,33 +148,43 @@
       ///更新狀態
       socket.on('update_status', function(status) {
         for (let i = 0; i < status.length; i++) {
-          cars[status[i].id].mesh.material.visible = true;
-          cars[status[i].id].mesh.material.color.setHSL(status[i].hue, 1, 0.5);
+          cars[status[i].id].mesh.traverse(function(child) {
+            if (child instanceof THREE.Mesh) {
+
+              child.material.forEach(function(e){
+                e.visible = true;
+              });
+            };
+          });
+          //cars[status[i].id].mesh.material.color.setHSL(status[i].hue, 1, 0.5);
         };
       });
       socket.on('update_step', function(status) {
         for (let i = 0; i < status.length; i++) {
-            if (i !== myID)
-              cars[status[i].id].step = status[i].step;
+          if (i !== myID)
+            cars[status[i].id].step = status[i].step;
         };
       });
       ///sync
-      socket.on ('pos_now', function (data) {
+      socket.on('pos_now', function(data) {
         for (let i = 0; i < status.length; i++) {
-              cars[status[i].id].omega = status[i].omega;
+          cars[status[i].id].omega = status[i].omega;
         };
-    	});
+      });
 
     });
 
     init();
     animate();
     ///sync
-    setInterval (function () {
-    	if (myID === undefined) return;
-    	let data = {id: myID, theta: cars[myID].omega};
-    	socket.emit ('pos_now', data);
-  	}, 1000);
+    setInterval(function() {
+      if (myID === undefined) return;
+      let data = {
+        id: myID,
+        theta: cars[myID].omega
+      };
+      socket.emit('pos_now', data);
+    }, 1000);
 
     function init() {
 
@@ -183,22 +202,25 @@
       );
       ////////////////////////////////////////////////
 
-      plane = new THREE.Mesh (new THREE.PlaneGeometry(20,20),
-      new THREE.MeshBasicMaterial({map:renderTarget.texture, side:THREE.DoubleSide}));
+      plane = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
+        new THREE.MeshBasicMaterial({
+          map: renderTarget.texture,
+          side: THREE.DoubleSide
+        }));
       plane.rotation.y = Math.PI;
-      sceneL.add (plane.clone());
-      sceneR.add (plane.clone());
+      sceneL.add(plane.clone());
+      sceneR.add(plane.clone());
 
 
       light = new THREE.DirectionalLight(0xffffff);
       light.position.set(-15, 15, 15);
       scene.add(light);
 
-      //readModel('car');
-      cars[0] = new Car(30);
-      cars[1] = new Car(50);
-      cars[2] = new Car(70);
-      cars[3] = new Car(90);
+      readModel('car');
+      /*  cars[0] = new Car(30);
+        cars[1] = new Car(50);
+        cars[2] = new Car(70);
+        cars[3] = new Car(90);*/
 
       var gridXZ = new THREE.GridHelper(500, 20, 'red', 'white');
       scene.add(gridXZ);
@@ -215,13 +237,14 @@
         $('#fuel').text('fuel :' + cars[myID].fuel.toFixed(2));
         $('#omega').text('speed :' + cars[myID].omega.toFixed(2));
 
-        let R = cars[myID].R, theta = cars[myID].theta;
+        let R = cars[myID].R,
+          theta = cars[myID].theta;
 
         cameraL.position.set(0.9 * R * Math.cos(theta + 0.1), 5, -0.9 * R * Math.sin(theta + 0.1));
         cameraL.lookAt(0.9 * R * Math.cos(theta - 0.21), 0, -0.9 * R * Math.sin(theta - 0.21))
 
         cameraR.position.set(1.1 * R * Math.cos(theta + 0.1), 5, -1.1 * R * Math.sin(theta + 0.1));
-        cameraR.lookAt(1.1* R * Math.cos(theta - 0.21), 0, -1.1 * R * Math.sin(theta - 0.21))
+        cameraR.lookAt(1.1 * R * Math.cos(theta - 0.21), 0, -1.1 * R * Math.sin(theta - 0.21))
 
         camera.position.set(R * Math.cos(theta - 0.03), 5, -R * Math.sin(theta - 0.03));
         camera.lookAt(R * Math.cos(theta + 0.21), 0, -R * Math.sin(theta + 0.21));
@@ -236,18 +259,18 @@
       renderer.render(scene, camera);
       rendererMap.render(scene, cameraMap);
 
-      rendererL.setRenderTarget (renderTarget);
+      rendererL.setRenderTarget(renderTarget);
       rendererL.render(scene, cameraL);
-      rendererL.setRenderTarget (null);
+      rendererL.setRenderTarget(null);
       rendererL.render(sceneL, cameraLT);
 
-      rendererR.setRenderTarget (renderTarget);
+      rendererR.setRenderTarget(renderTarget);
       rendererR.render(scene, cameraR);
-      rendererR.setRenderTarget (null);
+      rendererR.setRenderTarget(null);
       rendererR.render(sceneR, cameraRT);
     }
 
-    function initRenderer(){
+    function initRenderer() {
       ///Map
       var ww = $("#map").innerWidth();
       var hh = $("#map").innerHeight();
@@ -287,12 +310,13 @@
       rendererR.setClearColor(0x888888);
 
     }
-    function initCamera(){
+
+    function initCamera() {
       var ww = $("#map").innerWidth();
       var hh = $("#map").innerHeight();
       cameraMap = new THREE.PerspectiveCamera(60, ww / hh, 1, 1000);
-      cameraMap.position.y = 200;
-      cameraMap.rotation.x = -Math.PI/2;
+      cameraMap.position.y = 400;
+      cameraMap.rotation.x = -Math.PI / 2;
 
       ww = $("#container").innerWidth();
       hh = $("#container").innerHeight();
@@ -301,15 +325,15 @@
       ww = $("#containerL").innerWidth();
       hh = $("#containerL").innerHeight();
       cameraL = new THREE.PerspectiveCamera(90, ww / hh, 1, 1000);
-      cameraLT = new THREE.OrthographicCamera (-10,10,10,-10, 0,20);
+      cameraLT = new THREE.OrthographicCamera(-10, 10, 10, -10, 0, 20);
 
       ww = $("#containerR").innerWidth();
       hh = $("#containerR").innerHeight();
       cameraR = new THREE.PerspectiveCamera(90, ww / hh, 1, 1000);
-      cameraRT = new THREE.OrthographicCamera (-10,10,10,-10, 0,20);
+      cameraRT = new THREE.OrthographicCamera(-10, 10, 10, -10, 0, 20);
     }
     /// ReadModels 無法載入.MTL 暫時不使用
-    /*
+
     function readModel(modelName, targetSize = 40) {
       var onProgress = function(xhr) {
         if (xhr.lengthComputable) {
@@ -319,12 +343,12 @@
       };
       var onError = function(xhr) {};
       var mtlLoader = new THREE.MTLLoader();
-      mtlLoader.setPath('https://omgazero.github.io/W3D_hw/models/');
+      mtlLoader.setPath('models/');
       mtlLoader.load(modelName + '.mtl', function(materials) {
         materials.preload();
         var objLoader = new THREE.OBJLoader();
         objLoader.setMaterials(materials);
-        objLoader.setPath('https://omgazero.github.io/W3D_hw/models/');
+        objLoader.setPath('models/');
         objLoader.load(modelName + '.obj', function(object) {
 
           let theObject = unitize(object, targetSize);
@@ -363,33 +387,34 @@
       return theObject;
 
     }
-    */
+
     ///
 
     ///倒數
-    function gameCountDown(){
+    function gameCountDown() {
       let t = 3;
       $("#count").attr('hidden', false);
       countDown();
-      function countDown(){
 
-        setTimeout(function(){
-          if(t>0)
+      function countDown() {
+
+        setTimeout(function() {
+          if (t > 0)
             $("#count").text(t--);
-          else{
+          else {
             $("#count").text('GO!');
             t--;
           }
 
-          if(t===-1)
-            setTimeout(function(){
+          if (t === -1)
+            setTimeout(function() {
               $("#count").attr('hidden', true);
               $("#step").attr('disabled', false);
               $("#step").val('Step');
               start = true;
             }, 500);
 
-          if(t>=0)
+          if (t >= 0)
             countDown();
 
         }, 500);
@@ -406,8 +431,8 @@
       cameraMap.updateProjectionMatrix();
       rendererMap.setSize(ww, hh);
 
-       ww = $("#container").innerWidth();
-       hh = $("#container").innerHeight();
+      ww = $("#container").innerWidth();
+      hh = $("#container").innerHeight();
 
       camera.aspect = ww / hh;
       camera.updateProjectionMatrix();
@@ -416,12 +441,12 @@
       ww = $("#containerL").innerWidth();
       hh = $("#containerL").innerHeight();
 
-     cameraL.aspect = ww / hh;
-     cameraL.updateProjectionMatrix();
-     rendererL.setSize(ww, hh);
+      cameraL.aspect = ww / hh;
+      cameraL.updateProjectionMatrix();
+      rendererL.setSize(ww, hh);
 
-     ww = $("#containerR").innerWidth();
-     hh = $("#containerR").innerHeight();
+      ww = $("#containerR").innerWidth();
+      hh = $("#containerR").innerHeight();
 
       cameraR.aspect = ww / hh;
       cameraR.updateProjectionMatrix();
