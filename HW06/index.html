@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR</title>
+  <style type="text/css">
+    html {
+      overflow: hidden;
+    }
+    img{
+      margin:2px;
+      display: inline-block;
+      width: 150px;
+      height: 150px;
+    }
+    #mySlider {
+      top: 0;
+      right: -30vw;
+      width: 30vw;
+
+      position: fixed;
+      z-index: 9;
+
+    }
+
+    #myContent {
+      background-color: rgba(255, 255, 255, .6);
+      text-align: center;
+      padding-top: 10px;
+      border:5px #aaaaee solid;
+    }
+
+    #myTab {
+      position: absolute;
+      top: 20px;
+      left: -29px;
+      width: 24px;
+      background-color: rgba(255, 255, 255, .6);
+      color: #000000;
+
+      text-align: center;
+      padding: 9px 0;
+      border:5px #aaaaee solid;
+      -moz-border-radius-topleft: 10px;
+      -moz-border-radius-bottomleft: 10px;
+      -webkit-border-top-left-radius: 10px;
+      -webkit-border-bottom-left-radius: 10px;
+    }
+
+    #myTab span {
+      display: block;
+      height: 3vh;
+      padding: 1px 0;
+      line-height: 12px;
+      text-transform: uppercase;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div id="mySlider">
+    <div id="myTab">
+      <span>菜</span>
+      <span>單</span>
+      <span>一</span>
+      <span>覽</span>
+    </div>
+    <div id="myContent">
+      <img id="pic0" src="../media/images/Hamburger.jpg"  title="Hamburger">
+      <img id="pic1" src="../media/images/cake.jpg" title="cake">
+      <img id="pic2" src="../media/images/pizza.jpg"  title="pizza">
+      <img id="pic3" src="../media/images/Donitsi.jpg"  title="Donitsi">
+      <img id="pic4" src="../media/images/pie.jpg"  title="pie">
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/MTLLoader.js"></script>
+  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/OBJLoader.js"></script>
+  <!-- ar.js -->
+  <script src="../build/ar.js"></script>
+  <script>THREEx.ArToolkitContext.baseURL = '../'</script>
+  <!-- -->
+  <script type="text/javascript">
+    var frame, scene, camera, renderer, light, controls;
+    var arToolkitSource, arToolkitContext, markeHiro;
+    var stats, mySelector = 0;
+    var models = ['Hamburger', 'cake', 'pizza', 'Donitsi', 'pie'], ready = false;
+
+    $(function(){
+       ////側邊滑動視窗
+       let w = $("#myContent").width() + 10; //width + border
+       $('#myContent').css('height', ($(window).height() - 20) + 'px'); //將區塊自動撐滿畫面高度
+
+       $("#myTab").click(function() { //滑鼠點擊時
+         if ($("#mySlider").css('right') == '-' + w + 'px') {
+           $("#mySlider").animate({
+             right: '0px'
+           }, 600, 'swing');
+         }
+         else{
+           $("#mySlider").animate({
+             right: '-' + w + 'px'
+           }, 600, 'swing');
+         }
+       });
+        ////切換model
+        for(let i=0;i<models.length;i++){
+          let pic = '#pic' + i;
+           $(pic).click(function(){
+             if(mySelector != i){
+               ready = false;
+               let selectedObject = markeHiro.getObjectByName(models[mySelector]);
+               markeHiro.remove(selectedObject);
+               mySelector = i;
+               readModel(models[mySelector]);
+             };
+           });
+         };
+    });
+    init();
+    animate();
+
+    function init() {
+
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+      renderer.domElement.style.position = 'absolute'
+    	renderer.domElement.style.top = '0px'
+    	renderer.domElement.style.left = '0px'
+      document.body.appendChild(renderer.domElement);
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.Camera();
+	    scene.add(camera);
+
+
+      ////////////////////////////////////////////////////////////////////////////////
+    	//          handle arToolkitSource
+    	////////////////////////////////////////////////////////////////////////////////
+    	arToolkitSource = new THREEx.ArToolkitSource({
+    		// to read from the webcam
+    		sourceType : 'webcam',
+
+    		// // to read from an image
+    		// sourceType : 'image',
+    		// sourceUrl : THREEx.ArToolkitContext.baseURL + 'data/images/HIRO.jpg',
+    		// to read from a video
+    		// sourceType : 'video',
+    		// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
+    	})
+    	arToolkitSource.init(function onReady(){
+    		onResize()
+    	})
+
+    	// handle resize
+    	window.addEventListener('resize', function(){
+    		onResize()
+    	})
+    	function onResize(){
+    		arToolkitSource.onResize()
+    		arToolkitSource.copySizeTo(renderer.domElement)
+    		if( arToolkitContext.arController !== null ){
+    			arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
+    		}
+    	}
+    	////////////////////////////////////////////////////////////////////////////////
+    	//          initialize arToolkitContext
+    	////////////////////////////////////////////////////////////////////////////////
+
+      // create atToolkitContext
+    	arToolkitContext = new THREEx.ArToolkitContext({
+    		cameraParametersUrl: THREEx.ArToolkitContext.baseURL + 'data/data/camera_para.dat',
+    		detectionMode: 'mono',
+        maxDetectionRate: 30,
+        canvasWidth:80*3,
+        canvasHeight: 60*3,
+    	})
+    	// initialize it
+    	arToolkitContext.init(function onCompleted(){
+    		// copy projection matrix to camera
+    		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+    	})
+      markeHiro = addMarkeHiro();
+      scene.add(markeHiro);
+      ////////////////////////////////////////////////////////////////////////////////
+
+      stats = new Stats();
+      stats.showPanel(0);
+      stats.domElement.style.position = 'absolute';
+      stats.domElement.style.left = '0px';
+      stats.domElement.style.top = '0px';
+      document.body.appendChild(stats.domElement);
+
+      light = new THREE.DirectionalLight(0xffffff);
+      light.position.set(1, 10, 0);
+      markeHiro.add(light);
+      let light2 = new THREE.AmbientLight( 0x404040 );
+      markeHiro.add( light2 );
+      let plane = new THREE.Mesh( new THREE.CircleGeometry(0.7, 20), new THREE.MeshPhongMaterial({color:'#bababa'}) );
+      plane.rotation.x = -Math.PI/2;
+      markeHiro.add(plane);
+
+      /////Models
+
+      readModel(models[mySelector]);
+    }
+
+    function animate() {
+      stats.begin();
+      stats.end();
+      requestAnimationFrame(animate);
+      if(arToolkitSource.ready === false) return;
+      arToolkitContext.update(arToolkitSource.domElement);
+      if(ready)
+        frame.rotation.y += 0.01;
+      render();
+    }
+    function render() {
+      renderer.render(scene, camera);
+    }
+    function addMarkeHiro(){
+      let markerRoot = new THREE.Group();
+      var artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+    		type : 'pattern',
+    		patternUrl : THREEx.ArToolkitContext.baseURL + 'data/data/patt.hiro'
+    		// patternUrl : THREEx.ArToolkitContext.baseURL + 'data/data/patt.kanji'
+    	})
+
+      return markerRoot;
+    }
+    ///model
+
+    function readModel(modelName, targetSize = 1) {
+      var onProgress = function(xhr) {
+        if (xhr.lengthComputable) {
+          var percentComplete = xhr.loaded / xhr.total * 100;
+          console.log(Math.round(percentComplete, 2) + '% downloaded');
+        }
+      };
+      var onError = function(xhr) {};
+      var mtlLoader = new THREE.MTLLoader();
+      mtlLoader.setPath('models/');
+      mtlLoader.load(modelName + '.mtl', function(materials) {
+        materials.preload();
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('models/');
+        objLoader.load(modelName + '.obj', function(object) {
+
+          let theObject = unitize(object, targetSize);
+          //theObject.rotation.x = Math.PI / 2;
+          theObject.name = modelName;
+          markeHiro.add(theObject);
+          frame = theObject;
+          ready = true;
+        }, onProgress, onError);
+      });
+    }
+
+    function unitize(object, targetSize) {
+
+      // find bounding box of 'object'
+      var box3 = new THREE.Box3();
+      box3.setFromObject(object);
+      var size = new THREE.Vector3();
+      size.subVectors(box3.max, box3.min);
+      var center = new THREE.Vector3();
+      center.addVectors(box3.max, box3.min).multiplyScalar(0.5);
+
+      console.log('center: ' + center.x + ', ' + center.y + ', ' + center.z);
+      console.log('size: ' + size.x + ', ' + size.y + ', ' + size.z);
+
+      // uniform scaling according to objSize
+      var objSize = Math.max(size.x, size.y, size.z);
+      var scaleSet = targetSize / objSize;
+
+      var theObject = new THREE.Object3D();
+      theObject.add(object);
+      object.scale.set(scaleSet, scaleSet, scaleSet);
+      object.position.set(-center.x * scaleSet, -center.y * scaleSet + 0.1 , -center.z * scaleSet);
+
+      return theObject;
+
+    }
+  </script>
+</body>
+</html>

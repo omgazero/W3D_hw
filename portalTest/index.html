@@ -16,7 +16,7 @@
   <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/OBJLoader.js"></script>
   <script type="text/javascript">
     var frame, scene, camera, veiwcamera, renderer, light, controls;
-    var bufferscene, bufferTexture, bufferCamera, cube, portal;
+    var bufferscene, bufferTexture, bufferCamera, cube, portal, helper;
     var meshs = [],
       meshNum = 0;
     var toggle = false,
@@ -53,11 +53,12 @@
 
       ///////////////////
       bufferScene = new THREE.Scene();
-      bufferCamera = new THREE.PerspectiveCamera(60, 1, 0.5, 2000);
-      bufferCamera.position.z = 50;
-      bufferCamera.position.y = 10;
+      bufferCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+      //bufferCamera.position.z = 50;
+      //bufferCamera.position.y = 10;
 
-      helper = new THREE.CameraHelper(veiwcamera);
+      helper = new THREE.CameraHelper(bufferCamera);
+      helper.matrixAutoUpdate= false;
       scene.add(helper);
 
       lightA = new THREE.AmbientLight(0xffffff);
@@ -72,7 +73,7 @@
           magFilter: THREE.NearestFilter
         });
       ///////////////////
-      portal = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshPhongMaterial({
+      portal = new THREE.Mesh(new THREE.PlaneGeometry(200, 100), new THREE.MeshPhongMaterial({
         map: bufferTexture.texture
       }));
       portal.position.y = 50;
@@ -97,7 +98,7 @@
       angle += 0.005 * turn;
       if (meshs['Camera'] != undefined) {
 
-        veiwcamera.lookAt(portal.position);
+      //  veiwcamera.lookAt(portal.position);
         veiwcamera.position.copy(meshs['Camera'].position.add(new THREE.Vector3(0, 0, -5)));
         meshs['Camera'].position.set(-40 * Math.cos(angle), 50, 40 * Math.sin(angle));
 
@@ -106,7 +107,7 @@
         bufferCamera.position.set(veiwcamera.position.x, 0, veiwcamera.position.y);
         bufferCamera.quaternion.copy(portal.quaternion);
 
-        portalHalfWidth = 50;
+        portalHalfWidth = 100;
         portalHalfHeight = 50;
         portalPosition = new THREE.Vector3().copy(portal.position);
         bufferCamera.updateMatrixWorld();
@@ -117,16 +118,16 @@
         let top = portalPosition.y + portalHalfHeight;
         let bottom = portalPosition.y - portalHalfHeight;
 
-        const near = 0.01;
-        const distance = Math.abs(veiwcamera.position.z - portalPosition.z);
+        const near = 0.1;
+        const distance = Math.abs( portalPosition.z - veiwcamera.position.z);
         const scale = near / distance;
         left *= scale;
         right *= scale;
         top *= scale;
         bottom *= scale;
 
-        bufferCamera.projectionMatrix = (new THREE.Matrix4()).makePerspective(left, right, top, bottom, near, 1000);
-
+        bufferCamera.projectionMatrix.makePerspective(left, right, top, bottom, near, 200);
+        helper.update();
         //console.log(bufferCamera.projectionMatrix);
         /////
 
